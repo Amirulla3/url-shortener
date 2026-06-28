@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-url-table
+      author: amir
+
+      changes:
+        - createTable:
+            tableName: Url
+
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: longUrl
+                  type: TEXT
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: shortCode
+                  type: VARCHAR(10)
+
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: clickCount
+                  type: BIGINT
+                  defaultvalue: 0
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: createdAt
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+                  constraints:
+                    nullable: false
+
+
