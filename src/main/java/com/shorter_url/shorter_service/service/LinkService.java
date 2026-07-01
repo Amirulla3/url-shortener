@@ -1,37 +1,96 @@
 package com.shorter_url.shorter_service.service;
 
-import com.shorter_url.shorter_service.DTO.OriginalLinkRequest;
-import com.shorter_url.shorter_service.DTO.ShortLinkResponse;
+import com.shorter_url.shorter_service.DTO.*;
 import com.shorter_url.shorter_service.Entity.Link;
+import com.shorter_url.shorter_service.configuration.AppProperties;
+import com.shorter_url.shorter_service.exception.LinkExpiredException;
+import com.shorter_url.shorter_service.exception.LinkNotFoundException;
 import com.shorter_url.shorter_service.repository.LinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class LinkService {
 
+    private final String LINK_NOT_FOUND = "Ссылка не найдена!";
+
     private final LinkRepository repository;
+    private final AppProperties properties;
 
-    public ShortLinkResponse createLink(OriginalLinkRequest request){
-
-        final String LINK = "abc";
-        Random random = new Random();
-        int number = random.nextInt(100);
-        String shortCode = LINK + number;
+    public ShortLinkResponse createLink(CreateLinkRequest request){
 
         Link link = new Link();
-        link.setLongUrl(request.originalUrl());
-        link.setShortCode(shortCode);
+        link.setOriginalUrl(request.originalUrl());
+        link.setShortCode(UUID.randomUUID().toString().substring(0, 6));
         link.setCreatedAt(LocalDateTime.now());
-        link.setClick(0L);
-        Link savedLink = repository.save(link);
+        link.setExpiresAt(LocalDateTime.now().plusDays(30));
+        link.setClicks(0L);
 
-        ShortLinkResponse shortLinkResponse = new ShortLinkResponse(shortCode);
+        repository.save(link);
+
+        ShortLinkResponse shortLinkResponse = new ShortLinkResponse(
+                link.getShortCode(), properties.getBaseUrl()+link.getShortCode()
+        );
+
+        System.out.println("BaseUrl = " + properties.getBaseUrl());
+        System.out.println("ShortUrl = " + properties.getBaseUrl() + link.getShortCode());
 
         return shortLinkResponse;
+    }
+
+    @Transactional
+    public OriginalLinkResponse getOriginalLink(String shortCode){
+
+        Link link = repository.findByShortCode(shortCode)
+                .orElseThrow(() -> new LinkNotFoundException(LINK_NOT_FOUND));
+
+        if(link.getExpiresAt() != null && link.getExpiresAt().isBefore(LocalDateTime.now())){
+            throw new LinkExpiredException(shortCode);
+        }
+
+        link.setClicks(link.getClicks() + 1L);
+
+        repository.save(link);
+
+        System.out.println("Original URL = " + link.getOriginalUrl());
+
+        return new OriginalLinkResponse(link.getOriginalUrl());
+    }
+
+    @Transactional(readOnly = true)
+    public LinkInformationResponse getInformation(String shortCode){
+
+        Link link = repository.findByShortCode(shortCode)
+                .orElseThrow(() -> new LinkNotFoundException(LINK_NOT_FOUND));
+
+        LinkInformationResponse informationResponse = new LinkInformationResponse();
+        informationResponse.setCreatedAt(link.getCreatedAt());
+        informationResponse.setExpiresAt(link.getExpiresAt());
+        informationResponse.setOriginalLink(link.getOriginalUrl());
+
+        return informationResponse;
+    }
+
+    @Transactional(readOnly = true)
+    public void delete(String shortCode){
+
+        Link link = repository.findByShortCode(shortCode)
+                .orElseThrow(() -> new LinkNotFoundException(LINK_NOT_FOUND));
+
+        repository.delete(link);
+    }
+
+    @Transactional(readOnly = true)
+    public StatisticsResponse getStats(String shortCode){
+
+        Link link = repository.findByShortCode(shortCode)
+                .orElseThrow(()-> new LinkNotFoundException(LINK_NOT_FOUND));
+
+        return new StatisticsResponse(link.getClicks());
     }
 }

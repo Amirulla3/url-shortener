@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -18,11 +19,18 @@ public class Link {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String longUrl;
+    @Column(name = "original_url")
+    private String originalUrl;
 
+    @Column(name = "short_code")
     private String shortCode;
 
-    private Long click;
+    @Column(name = "clicks")
+    private Long clicks;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 }

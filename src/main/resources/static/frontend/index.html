@@ -96,6 +96,23 @@
             color: red;
             margin-top: 10px;
         }
+
+        .stats-card {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f5f7fa;
+            border: 1px solid #dcdcdc;
+        }
+
+        .stats-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .stats-card p {
+            font-size: 18px;
+        }
     </style>
 </head>
 
@@ -218,6 +235,9 @@
 
     async function loadStats() {
 
+        console.log("loadStats");
+        console.log(currentShortCode);
+
         if (!currentShortCode)
             return;
 
@@ -238,10 +258,12 @@
                 будут выведены автоматически.
             */
 
-            statsResult.innerHTML =
-                "<pre>" +
-                JSON.stringify(stats, null, 2) +
-                "</pre>";
+            statsResult.innerHTML = `
+                <div class="stats-card">
+                    <h3>📊 Статистика ссылки</h3>
+                    <p><strong>Количество переходов:</strong> ${stats.clicks}</p>
+                </div>
+`;
 
         } catch (e) {
             statsResult.innerHTML =

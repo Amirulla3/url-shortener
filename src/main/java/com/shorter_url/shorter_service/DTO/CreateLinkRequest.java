@@ -1,4 +1,6 @@
 package com.shorter_url.shorter_service.DTO;
 
-public record OriginalLinkRequest(String originalUrl) {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateLinkRequest(@NotBlank String originalUrl) {
 }
