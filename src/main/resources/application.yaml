@@ -2,9 +2,10 @@ spring:
   application:
     name: shorter-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/url-shortener
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/shortener}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
   jpa:
     hibernate:
       ddl-auto: validate
