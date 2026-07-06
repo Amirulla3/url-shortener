@@ -7,12 +7,16 @@ import com.shorter_url.shorter_service.exception.LinkExpiredException;
 import com.shorter_url.shorter_service.exception.LinkNotFoundException;
 import com.shorter_url.shorter_service.repository.LinkRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LinkService {
@@ -44,7 +48,10 @@ public class LinkService {
     }
 
     @Transactional
+    @Cacheable("links")
     public OriginalLinkResponse getOriginalLink(String shortCode){
+
+        log.info("Поиск ссылки в PostgreSQL", shortCode);
 
         Link link = repository.findByShortCode(shortCode)
                 .orElseThrow(() -> new LinkNotFoundException(LINK_NOT_FOUND));
@@ -77,6 +84,7 @@ public class LinkService {
     }
 
     @Transactional(readOnly = true)
+    @CacheEvict
     public void delete(String shortCode){
 
         Link link = repository.findByShortCode(shortCode)

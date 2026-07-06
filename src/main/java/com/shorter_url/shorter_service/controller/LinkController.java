@@ -2,6 +2,8 @@ package com.shorter_url.shorter_service.controller;
 
 import com.shorter_url.shorter_service.DTO.*;
 import com.shorter_url.shorter_service.service.LinkService;
+import com.shorter_url.shorter_service.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,9 +17,19 @@ import java.net.URI;
 public class LinkController {
 
     private final LinkService linkService;
+    private final RateLimitService rateLimitService;
 
     @PostMapping("/api/links")
-    public ResponseEntity<ShortLinkResponse> getShortUrl(@Valid @RequestBody CreateLinkRequest request){
+    public ResponseEntity<ShortLinkResponse> createShortUrl(@Valid @RequestBody CreateLinkRequest request,
+                                                         HttpServletRequest httpServletRequest){
+
+        String ip = httpServletRequest.getRemoteAddr();
+
+        if(rateLimitService.isRateLimited(ip)){
+            return ResponseEntity.
+                    status(HttpStatus.TOO_MANY_REQUESTS)
+                    .build();
+        }
 
         ShortLinkResponse response = linkService.createLink(request);
 
