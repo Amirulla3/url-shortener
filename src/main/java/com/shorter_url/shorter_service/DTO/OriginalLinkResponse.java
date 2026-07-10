@@ -1,4 +1,6 @@
 package com.shorter_url.shorter_service.DTO;
 
-public record OriginalLinkResponse(String originalLink) {
+import java.io.Serializable;
+
+public record OriginalLinkResponse(String originalLink) implements Serializable {
 }
